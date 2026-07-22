@@ -1,0 +1,28 @@
+
+services:
+  # Сервис базы данных PostgreSQL
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: wallet_db
+    ports:
+      - "5432:5432"        # проброс порта на хост для подключения извне
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # сохраняем данные между перезапусками
+
+  # Сервис приложения
+  app:
+    build: .               # собираем образ из Dockerfile в текущей папке
+    ports:
+      - "8000:8000"        # проброс порта 8000 на хост
+    depends_on:
+      - db                 # гарантируем запуск БД перед приложением
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/wallet_db
+    volumes:
+      - .:/app             # монтируем текущую папку в контейнер
+
+volumes:
+  postgres_data:           # именованный том для данных БД
